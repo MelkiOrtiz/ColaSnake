@@ -51,5 +51,5 @@ class Cola {
 
 ---
 
-Este enfoque permite gestionar de forma eficiente el crecimiento y movimiento de la serpiente dentro del juego. ¡Listo para integrarlo con la lógica del juego *Snake*! 🐍
+
 
