@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>LaColaDeSnake</title>
+</head>
+<body>
+
+</body>
+</html>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaColaDeSnake</title>
+<style>
+    canvas {
+        border: 1px solid black;
+        background-color: #f0f0f0;
+    }
+</style>
+</head>
+<body>
+<canvas id="snakeCanvas" width="400" height="400"></canvas>
+<script>
+    // Esta clase Cola sirve para manejar la estructura de la serpiente, Ojo al dato
+    class Cola {
+        constructor() {
+            this.items = [];
+        }
+        enqueue(element) {
+            this.items.push(element);
+        }
+        dequeue() {
+            return this.items.shift();
+        }
+        peekTail() {
+            return this.items[this.items.length - 1];
+        }
+        toArray() {
+            return this.items;
+        }
+        get length() {
+            return this.items.length;
+        }
+    }
+
+    const canvas = document.getElementById('snakeCanvas');
+    const ctx = canvas.getContext('2d');
+    const box = 20;
+
+    // Inicializamos la serpiente usando una Cola.
+    // El primer elemento (índice 0) es la cola (tail) y el último es la cabeza (head)
+    // Pilas pues
+    let snake = new Cola();
+    snake.enqueue({ x: 9 * box, y: 9 * box });
+
+    let direction = 'RIGHT';
+    let food = {
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box
+    };
+
+    document.addEventListener('keydown', directionControl);
+
+    function directionControl(event) {
+        if (event.keyCode === 37 && direction !== 'RIGHT') direction = 'LEFT';
+        if (event.keyCode === 38 && direction !== 'DOWN') direction = 'UP';
+        if (event.keyCode === 39 && direction !== 'LEFT') direction = 'RIGHT';
+        if (event.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // El último elemento es la cabeza (se pinta en verde).
+        let segments = snake.toArray();
+        for (let i = 0; i < segments.length; i++) {
+            ctx.fillStyle = (i === segments.length - 1) ? 'green' : 'lightgreen';
+            ctx.fillRect(segments[i].x, segments[i].y, box, box);
+            ctx.strokeStyle = 'darkgreen';
+            ctx.strokeRect(segments[i].x, segments[i].y, box, box);
+        }
+
+        // Dibuja la comida
+        ctx.fillStyle = 'red';
+        ctx.fillRect(food.x, food.y, box, box);
+
+        // Obtenemos la cabeza actual (último elemento de la cola)
+        let head = snake.peekTail();
+        let snakeX = head.x;
+        let snakeY = head.y;
+
+        // Calculamos la nueva posición de la cabeza según la dirección
+        if (direction === 'LEFT') snakeX -= box;
+        if (direction === 'UP') snakeY -= box;
+        if (direction === 'RIGHT') snakeX += box;
+        if (direction === 'DOWN') snakeY += box;
+
+        // Verificamos si la serpiente se come la comida (nimodo que se coma la pared)
+        if (snakeX === food.x && snakeY === food.y) {
+            // Genera nueva comida
+            food = {
+                x: Math.floor(Math.random() * 20) * box,
+                y: Math.floor(Math.random() * 20) * box
+            };
+        } else {
+            // Si no come, se remueve el primer elemento (la cola)
+            snake.dequeue();
+        }
+
+        const newHead = { x: snakeX, y: snakeY };
+
+        // Verificar colisiones: límites del canvas y choque con el cuerpo de la serpiente
+        if (
+            snakeX < 0 ||
+            snakeY < 0 ||
+            snakeX >= canvas.width ||
+            snakeY >= canvas.height ||
+            collision(newHead, snake.toArray())
+        ) {
+            clearInterval(game);
+            alert('Game Over!');
+            return;
+        }
+
+        // Agrega la nueva cabeza a la cola
+        snake.enqueue(newHead);
+
+        // Muestra el puntaje (longitud de la serpiente - 1)
+        ctx.fillStyle = 'black';
+        ctx.font = '20px Arial';
+        ctx.fillText('Score: ' + (snake.length - 1), 10, 20);
+    }
+
+    function collision(head, array) {
+        for (let i = 0; i < array.length; i++) {
+            if (head.x === array[i].x && head.y === array[i].y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    let game = setInterval(draw, 100);
+</script>
+</body>
+</html>
+
